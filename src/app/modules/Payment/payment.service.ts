@@ -120,7 +120,7 @@ const singleTransactionHistory = catchAsync(async (req, res) => {
 
 const singleTransactionHistoryBySessionId = catchAsync(async (req, res) => {
     const query = {
-        transactionId: req.params.transactionId,
+        sessionId: req.params.sessionId,
         ...(req.user.role !== 'SUPERADMIN' && { userId: req.user.id }),
     };
 
