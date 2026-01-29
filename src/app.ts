@@ -4,15 +4,15 @@ import httpStatus from "http-status";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import router from "./app/routes";
 import path from 'path';
-import { StripeWebHook } from "./app/utils/StripeUtils";
+// import { StripeWebHook } from "./app/utils/StripeUtils";
 import { html } from "./htmldesign";
 const app: Application = express();
 
-app.post(
-  "/api/v1/payments/webhook",
-  express.raw({ type: "application/json" }),
-  StripeWebHook
-);
+// app.post(
+//   "/api/v1/payments/webhook",
+//   express.raw({ type: "application/json" }),
+//   StripeWebHook
+// );
 
 app.use(
   cors({

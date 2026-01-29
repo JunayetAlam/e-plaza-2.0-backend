@@ -4,7 +4,6 @@ import { UserRouters } from '../modules/User/user.routes';
 import { NotificationsRouters } from '../modules/Notification/notification.route';
 import { AssetRouters } from '../modules/Asset/asset.route';
 import { AuthByOtpRouters } from '../modules/AuthByOtp/auth.routes';
-import { SubscriptionRoutes } from '../modules/Subscription/subscription.route';
 import { PaymentRoutes } from '../modules/Payment/payment.route';
 const router = express.Router();
 
@@ -33,11 +32,8 @@ const moduleRoutes = [
     path: '/assets',
     route: AssetRouters,
   },
- 
-  {
-    path: '/subscriptions',
-    route: SubscriptionRoutes,
-  },
+
+
   {
     path: '/payments',
     route: PaymentRoutes,

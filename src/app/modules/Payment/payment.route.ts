@@ -8,22 +8,6 @@ const router = express.Router();
 
 
 
-router.post(
-  '/buy-subscription',
-  auth('ANY'),
-  validateRequest.body(PaymentValidation.buySubscriptionSchema),
-  PaymentServices.handleBuySubscription,
-);
-
-router.post(
-  '/renew-subscription',
-  auth('ANY'),
-  validateRequest.body(PaymentValidation.renewSubscriptionSchema),
-  PaymentServices.handleRenewSubscription,
-);
-
-// Get user's active subscriptions
-router.get('/active-subscriptions', auth('ANY'), PaymentServices.getUserActiveSubscriptions);
 
 // Payment history and management
 router.get('/', auth('ANY'), PaymentServices.getAllPayments);

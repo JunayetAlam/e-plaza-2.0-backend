@@ -27,13 +27,11 @@ model User {
   emailVerificationToken        String?
   emailVerificationTokenExpires DateTime?
 
-  sentMessages     Message[]          @relation("SentMessages")
-
-  payments         Payment[]
-  transactions     Transaction[]
-  notifications    NotificationUser[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  payments      Payment[]
+  orders        Order[]
+  notifications NotificationUser[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@map("users")
 }

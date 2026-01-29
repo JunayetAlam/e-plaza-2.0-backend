@@ -1,44 +1,45 @@
 model Payment {
-    id                    String  @id @default(auto()) @map("_id") @db.ObjectId
-    userId                String  @db.ObjectId
-    subscriptionPackageId String? @db.ObjectId
+    id      String  @id @default(auto()) @map("_id") @db.ObjectId
+    userId  String? @db.ObjectId
+    orderId String? @unique @db.ObjectId
 
-    paymentIntent        String?
-    paymentMethodType    String?
-    stripePaymentId      String?
-    stripeCustomerId     String?
-    stripeSubscriptionId String?
-    amount               Int
-    currency             String
+    sessionId         String? @unique
+    transactionId     String? @unique
+    validationId      String?
+    bankTransactionId String?
+    cardType          String?
+    cardIssuer        String?
+    cardBrand         String?
+    cardIssuerCountry String?
 
-    paymentStatus PaymentStatus @default(PENDING)
-    paymentType   PaymentType
+    amount   Int
+    currency String @default("BDT")
 
-    stripeSessionId String? @unique
+    type        Type
+    status      PaymentStatus @default(PENDING)
+    paymentType PaymentType
 
-    user                User          @relation(fields: [userId], references: [id])
-    subscriptionPackage Subscription? @relation(fields: [subscriptionPackageId], references: [id])
-
-    startAt DateTime?
-    endAt   DateTime?
-
-    transactions Transaction[]
+    user  User?  @relation(fields: [userId], references: [id])
+    order Order? @relation(fields: [orderId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@unique([userId, subscriptionPackageId])
     @@map("payments")
 }
 
 enum PaymentStatus {
     PENDING
-    SUCCESS
-    FAILED
+    COMPLETED
     CANCELLED
-    EXPIRED
+    REFUNDED
+}
+
+enum Type {
+    ORDER
 }
 
 enum PaymentType {
-    SUBSCRIPTION
+    CASH_ON_DELIVERY
+    ONLINE_PAYMENT
 }

@@ -3,7 +3,7 @@ import app from './app';
 import seedSuperAdmin from './app/DB';
 import config from './config';
 import { customConsole } from './app/utils/customConsole';
-import { setupWebSocketServer } from './app/modules/Socket/socket.service';
+// import { setupWebSocketServer } from './app/modules/Socket/socket.service';
 const port = config.port || 5000;
 
 async function main() {
@@ -12,7 +12,7 @@ async function main() {
     seedSuperAdmin();
   });
 
-  setupWebSocketServer(server);
+  // setupWebSocketServer(server);
 
 
   const exitHandler = () => {

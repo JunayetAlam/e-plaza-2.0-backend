@@ -18,7 +18,7 @@ const updateMultipleAssetsSchema = z.object({
     })
 });
 const deleteMultipleAssetsSchema = z.object({
-   body: z.object({
+    body: z.object({
         paths: z.array(z.string().min(1)),
     })
 });

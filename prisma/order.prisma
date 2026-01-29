@@ -1,0 +1,43 @@
+model Order {
+    id             String           @id @default(auto()) @map("_id") @db.ObjectId
+    userId         String?          @db.ObjectId
+    products       OrderedProduct[]
+    status         OrderStatus      @default(PENDING)
+    clientInfo     ClientInfo
+    transactionId  String
+    totalPrice     Float
+    deliveryCharge Float
+
+    user    User?    @relation(fields: [userId], references: [id])
+    payment Payment?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("orders")
+}
+
+type OrderedProduct {
+    productId  String @db.ObjectId
+    name       String
+    mainImage  String
+    quantity   Int
+    title      String
+    price      Price
+    totalPrice Float
+}
+
+type ClientInfo {
+    name        String
+    email       String?
+    phoneNumber String
+    address     String
+}
+
+enum OrderStatus {
+    PENDING
+    DELIVERED
+    COMPLETED
+    DECLINED
+    CANCELLED
+}

@@ -50,25 +50,7 @@ const getMyProfile = catchAsync(async (req, res) => {
     where: {
       id: id,
     },
-    include: {
-      ...(role !== 'SUPERADMIN' && {
-        payments: {
-          where: {
-            paymentType: 'SUBSCRIPTION',
-            paymentStatus: 'SUCCESS',
-            endAt: {
-              gte: new Date(),
-            },
-          },
-          select: {
-            id: true,
-            paymentStatus: true,
-            endAt: true,
-            subscriptionPackageId: true
-          }
-        },
-      })
-    }
+
   });
 
   if (role === 'SUPERADMIN') {
@@ -80,16 +62,11 @@ const getMyProfile = catchAsync(async (req, res) => {
     return;
   }
 
-  const payments = Profile.payments
-  const exactPayment = payments?.filter(item => item.paymentStatus === 'SUCCESS')[0]
-  const isVerified = new Date(exactPayment?.endAt || '') >= new Date();
   const result = {
     ...Profile,
     payments: undefined,
-    isPaid: isVerified,
-    subscriptionPackageId: exactPayment?.subscriptionPackageId || '',
-    endAt: exactPayment?.endAt || null,
-    hideSubscription: false
+    isPaid: false,
+    subscriptionPackageId: '',
   }
 
   sendResponse(res, {
