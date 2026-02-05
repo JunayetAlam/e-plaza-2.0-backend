@@ -5,6 +5,7 @@ import { NotificationsRouters } from '../modules/Notification/notification.route
 import { AssetRouters } from '../modules/Asset/asset.route';
 import { AuthByOtpRouters } from '../modules/AuthByOtp/auth.routes';
 import { PaymentRoutes } from '../modules/Payment/payment.route';
+import { OrderRouters } from '../modules/Order/order.route';
 const router = express.Router();
 
 const moduleRoutes = [
@@ -19,6 +20,10 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserRouters,
+  },
+  {
+    path: '/orders',
+    route: OrderRouters,
   },
   // {
   //   path: '/messages',
