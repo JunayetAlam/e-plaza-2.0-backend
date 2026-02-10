@@ -8,6 +8,7 @@ import { PaymentRoutes } from '../modules/Payment/payment.route';
 import { OrderRouters } from '../modules/Order/order.route';
 import { CategoryRouters } from '../modules/Category/category.route';
 import { SubCategoryRoutes } from '../modules/Sub_Category/sub_category.route';
+import { ProductRoutes } from '../modules/Product/product.route';
 const router = express.Router();
 
 const moduleRoutes = [
@@ -34,6 +35,10 @@ const moduleRoutes = [
   {
     path: '/sub-categories',
     route: SubCategoryRoutes,
+  },
+  {
+    path: '/products',
+    route: ProductRoutes,
   },
   // {
   //   path: '/messages',
