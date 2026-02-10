@@ -32,11 +32,13 @@ moduleNames.forEach(moduleName => {
     let content = '';
 
     switch (type) {
-      case 'controller':
       case 'service':
         content =
           `import httpStatus from 'http-status';\n\n` +
-          `export const ${pascalName}${capitalize(type)} = {};\n`;
+          `import { prisma } from '../../utils/prisma';\n\n` +
+          `import sendResponse from '../../utils/sendResponse';\n\n` +
+          `import catchAsync from '../../utils/catchAsync';\n\n` +
+          `export const ${pascalName}${capitalize(type)} = {}\n`;
         break;
       case 'validation':
         content = `export const ${pascalName}${capitalize(type)} = {};\n`;

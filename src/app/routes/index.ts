@@ -6,6 +6,8 @@ import { AssetRouters } from '../modules/Asset/asset.route';
 import { AuthByOtpRouters } from '../modules/AuthByOtp/auth.routes';
 import { PaymentRoutes } from '../modules/Payment/payment.route';
 import { OrderRouters } from '../modules/Order/order.route';
+import { CategoryRouters } from '../modules/Category/category.route';
+import { SubCategoryRoutes } from '../modules/Sub_Category/sub_category.route';
 const router = express.Router();
 
 const moduleRoutes = [
@@ -24,6 +26,14 @@ const moduleRoutes = [
   {
     path: '/orders',
     route: OrderRouters,
+  },
+  {
+    path: '/categories',
+    route: CategoryRouters,
+  },
+  {
+    path: '/sub-categories',
+    route: SubCategoryRoutes,
   },
   // {
   //   path: '/messages',

@@ -70,7 +70,7 @@ const auth = <T extends readonly (UserRoleEnum | 'ANY' | 'OPTIONAL' | 'CHECK_SUB
       if (roles.includes('ANY')) {
         next();
       } else {
-        if (roles.length && !roles.includes(verifyUserToken.role)) {
+        if (roles.length && !roles.includes(verifyUserToken.role) && !roles.includes('OPTIONAL')) {
           throw new AppError(httpStatus.FORBIDDEN, 'Forbidden!');
         }
         next()

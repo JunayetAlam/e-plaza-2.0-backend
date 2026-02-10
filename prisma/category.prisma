@@ -1,0 +1,36 @@
+model Category {
+    id        String  @id @default(auto()) @map("_id") @db.ObjectId
+    index     Int     @default(1)
+    title     String
+    slug      String  @unique
+    image     String  @default("")
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
+
+    subCategories SubCategory[]
+    products      Product[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("categories")
+}
+
+model SubCategory {
+    id         String @id @default(auto()) @map("_id") @db.ObjectId
+    categoryId String @db.ObjectId
+
+    title     String
+    slug      String  @unique
+    image     String  @default("")
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
+
+    category Category  @relation(fields: [categoryId], references: [id])
+    products Product[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("sub_categories")
+}

@@ -3,22 +3,10 @@ import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { deleteFromCloudinary, deleteMultipleByUrl, uploadMultipleToCloudinary, uploadToCloudinary } from '../Upload/uploadToCloudinary';
+import { deleteFromCloudinary, deleteMultipleByUrl } from '../Upload/uploadToCloudinary';
+import { deleteMultiple, deleteSingle, uploadMultiple, uploadSingle } from './asset.utils';
 
-interface ImageData {
-    name: string;
-    url: string;
-}
 
-export function getImageDataFromUrl(imageUrl: string): ImageData {
-    const parts = imageUrl.split("/");
-    const fileName = parts[parts.length - 1] || "unknown";
-
-    return {
-        name: fileName,
-        url: imageUrl,
-    };
-}
 
 
 const uploadAsset = catchAsync(async (req, res) => {
@@ -26,8 +14,7 @@ const uploadAsset = catchAsync(async (req, res) => {
     if (!file) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Provide at least one asset');
     }
-    const location = await uploadToCloudinary(file);
-    const url = getImageDataFromUrl(location.Location);
+    const url = await uploadSingle(file);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -41,9 +28,7 @@ const uploadMultipleAssets = catchAsync(async (req, res) => {
     if (!files || files.length === 0) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Provide at least one asset');
     }
-    console.log(files)
-    const locations = await uploadMultipleToCloudinary(files);
-    const urls = locations.map(item => getImageDataFromUrl(item.Location));
+    const urls = await uploadMultiple(files)
     sendResponse(res, {
         statusCode: httpStatus.OK,
         message: 'Files uploaded successfully',
@@ -53,7 +38,7 @@ const uploadMultipleAssets = catchAsync(async (req, res) => {
 
 const deleteAsset = catchAsync(async (req, res) => {
     const path = req.params.path;
-    const success = await deleteFromCloudinary(path);
+    const success = await deleteSingle(path);
     sendResponse(res, {
         statusCode: httpStatus.OK,
         message: 'File deleted successfully',
@@ -63,7 +48,7 @@ const deleteAsset = catchAsync(async (req, res) => {
 
 const deleteMultipleAssets = catchAsync(async (req, res) => {
     const paths = req.body.paths;
-    const deleted = await deleteMultipleByUrl(paths);
+    const deleted = await deleteMultiple(paths);
     sendResponse(res, {
         statusCode: httpStatus.OK,
         message: 'Files deleted successfully',
@@ -77,9 +62,8 @@ const updateAsset = catchAsync(async (req, res) => {
     if (!newFile) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Provide a new file to update the asset');
     }
-    const newLocation = await uploadToCloudinary(newFile);
-    deleteFromCloudinary(oldPath)
-    const url = getImageDataFromUrl(newLocation.Location);
+    const url = await uploadSingle(newFile);
+    deleteSingle(oldPath)
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -95,9 +79,8 @@ const updateMultipleAssets = catchAsync(async (req, res) => {
     if (!files || files.length === 0) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Provide new files to update the assets');
     }
-    const newLocations = await uploadMultipleToCloudinary(files);
-    deleteMultipleByUrl(oldPaths)
-    const urls = newLocations.map(item => getImageDataFromUrl(item.Location));
+    const urls = await uploadMultiple(files)
+    deleteMultiple(oldPaths)
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
