@@ -16,7 +16,7 @@ const createOrderForCashOnDeliveryValidation = z.object({
             email: z.string(),
             address: z.string(),
         }),
-        deliveryCharge: z.number(),
+        isInside: z.boolean(),
     }).strict(),
 });
 
@@ -34,7 +34,7 @@ const updateOrderValidation = z.object({
             email: z.string(),
             address: z.string(),
         }).optional(),
-        deliveryCharge: z.number().optional(),
+        isInside: z.boolean().optional(),
     }).strict(),
 });
 

@@ -14,7 +14,17 @@ export const createOrderTransactionId = (): string => {
     return `TXN-${datePart}-${nanoid(8).toUpperCase()}`;
 };
 
-export const analyzeProduct = async (products: { productId: string, quantity: number }[]) => {
+export const analyzeProduct = async (incomingProducts: { productId: string, quantity: number }[]) => {
+    const products = incomingProducts.reduce((acc, product) => {
+        const existingProduct = acc.find(p => p.productId === product.productId);
+        if (existingProduct) {
+            existingProduct.quantity += product.quantity;
+        } else {
+            acc.push(product);
+        }
+        return acc;
+    }, [] as { productId: string, quantity: number }[]);
+
     const allProducts = await prisma.product.findMany({
         where: {
             id: {

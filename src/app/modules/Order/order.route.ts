@@ -55,7 +55,7 @@ router.put(
 
 router.put(
     '/archive/:id',
-    auth('USER'),
+    auth('ANY'),
     OrderService.archiveOrder,
 );
 

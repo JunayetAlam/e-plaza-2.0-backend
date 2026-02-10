@@ -8,7 +8,7 @@ import { analyzeProduct, createOrderSessionId, createOrderTransactionId } from '
 import QueryBuilder from '../../builder/QueryBuilder';
 
 const createOrderForCashOnDelivery = catchAsync(async (req, res) => {
-    const payload = req.body as Omit<Order, 'products'> & { products: { productId: string, quantity: number }[] };
+    const payload = req.body as Omit<Order, 'products' | 'deliveryCharge'> & { products: { productId: string, quantity: number, }[], isInside: boolean };
     const userId = req?.user?.id;
 
     if (userId) {
@@ -27,20 +27,21 @@ const createOrderForCashOnDelivery = catchAsync(async (req, res) => {
     } else {
         const transactionId = createOrderTransactionId();
         const sessionId = createOrderSessionId();
+        const deliveryCharge = payload.isInside ? 60 : 120;
 
         const createOrder = await prisma.order.create({
             data: {
                 transactionId,
-                totalPrice,
+                totalPrice: totalPrice + deliveryCharge,
                 products: orderProducts,
                 clientInfo: payload.clientInfo,
-                deliveryCharge: payload.deliveryCharge,
+                deliveryCharge: deliveryCharge,
                 ...(userId ? { userId } : {}),
                 payment: {
                     create: {
                         transactionId,
                         sessionId,
-                        amount: totalPrice,
+                        amount: totalPrice + deliveryCharge,
                         paymentType: 'CASH_ON_DELIVERY',
                         type: "ORDER",
                         ...(userId ? { userId } : {}),
@@ -63,6 +64,8 @@ const createOrderForCashOnDelivery = catchAsync(async (req, res) => {
 const getAllOrders = catchAsync(async (req, res) => {
     const user = req.user;
     const query: Record<string, unknown> = req.query;
+
+    // const isMe = query?.isMe ? true : false;
 
     if (user.role !== 'SUPERADMIN') {
         query.userId = user.id;
@@ -136,7 +139,7 @@ const updateOrder = catchAsync(async (req, res) => {
 
     let updateData: any = {
         clientInfo: payload.clientInfo,
-        deliveryCharge: payload.deliveryCharge,
+        deliveryCharge: payload.isInside ? 60 : 120,
     }
 
     let TotalPrice: null | number = null;
@@ -161,7 +164,7 @@ const updateOrder = catchAsync(async (req, res) => {
         where: { id },
         data: {
             ...updateData,
-            ...(TotalPrice && { payment: { update: { amount: TotalPrice } } }),
+            ...(TotalPrice && { totalPrice: TotalPrice + updateData.deliveryCharge, payment: { update: { amount: TotalPrice + updateData.deliveryCharge } } }),
         },
         include: {
             payment: true,
@@ -243,6 +246,10 @@ const archiveOrder = catchAsync(async (req, res) => {
     const order = await prisma.order.findUniqueOrThrow({
         where: { id, isDeleted: false },
     });
+
+    if (order.userId !== req.user.id) {
+        throw new AppError(httpStatus.FORBIDDEN, 'You are not authorized to archive this order');
+    }
 
     await prisma.order.update({
         where: { id },
