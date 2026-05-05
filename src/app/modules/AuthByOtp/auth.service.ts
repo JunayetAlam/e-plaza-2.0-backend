@@ -220,7 +220,7 @@ const forgetPassword = catchAsync(async (req, res) => {
   });
 
 
-  if (user.isEmailVerified) {
+  if (!user.isEmailVerified) {
     throw new AppError(httpStatus.FORBIDDEN, 'You are not verified!')
   }
 
@@ -307,28 +307,14 @@ const verifyForgotPassOtp = catchAsync(async (req, res) => {
 
 const resetPassword = catchAsync(async (req, res) => {
   const payload = req.body;
-  const token = req.headers.authorization as string;
+  const token = payload.token;
   if (!token) {
     throw new AppError(httpStatus.FORBIDDEN, 'Token is missing!')
   }
 
-  const userData = await insecurePrisma.user.findFirstOrThrow({
-    where: {
-      email: payload.email,
-    },
-  })
 
-  if (userData.isDeleted) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Account has been deleted. Please contact support to reactivate your account');
-  }
 
-  if (userData.status === 'BLOCKED') {
-    throw new AppError(httpStatus.FORBIDDEN, 'User has blocked')
-  }
 
-  if (token !== userData.passwordResetToken) {
-    throw new AppError(httpStatus.FORBIDDEN, 'Invalid token')
-  }
 
   const decoded = jwt.verify(token, config.jwt.access_secret as string) as JwtPayload
 
@@ -336,8 +322,22 @@ const resetPassword = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid token');
   }
 
-  if (decoded.email !== payload.email) {
-    throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!')
+
+  const userData = await insecurePrisma.user.findFirstOrThrow({
+    where: {
+      email: decoded.email,
+    },
+  })
+  if (token !== userData.passwordResetToken) {
+    throw new AppError(httpStatus.FORBIDDEN, 'Invalid token')
+  }
+
+  if (userData.isDeleted) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Account has been deleted. Please contact support to reactivate your account');
+  }
+
+  if (userData.status === 'BLOCKED') {
+    throw new AppError(httpStatus.FORBIDDEN, 'User has blocked')
   }
 
   const newHashedPassword = await bcrypt.hash(payload.newPassword, Number(config.bcrypt_salt_rounds))

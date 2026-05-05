@@ -96,6 +96,9 @@ const resetPassword = z.object({
     newPassword: z.string({
       error: 'New password is required!',
     }),
+    token: z.string({
+      error: 'Token is required!',
+    }),
   }).strict(),
 });
 
