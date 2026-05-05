@@ -7,8 +7,9 @@ model Category {
     isDeleted Boolean @default(false)
     isActive  Boolean @default(true)
 
-    subCategories SubCategory[]
-    products      Product[]
+    subCategories       SubCategory[]
+    products            Product[]
+    categoryFilterTypes CategoryFilterType[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -26,8 +27,9 @@ model SubCategory {
     isDeleted Boolean @default(false)
     isActive  Boolean @default(true)
 
-    category Category  @relation(fields: [categoryId], references: [id])
-    products Product[]
+    category               Category                @relation(fields: [categoryId], references: [id])
+    products               Product[]
+    subCategoryFilterTypes SubCategoryFilterType[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
