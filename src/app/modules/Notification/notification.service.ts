@@ -16,7 +16,7 @@ const createNotification = catchAsync(async (req, res) => {
       title,
       message,
       type,
-      redirectEndpoint: redirectEndpoint || ''
+      redirectEndpoint: redirectEndpoint || '',
     },
   });
 
@@ -49,17 +49,14 @@ const getAllNotifications = catchAsync(async (req, res) => {
   const query = req.query;
   query.userId = req.user.id;
 
-  const notificationQuery = new QueryBuilder(
-    prisma.notificationUser,
-    query,
-  );
+  const notificationQuery = new QueryBuilder(prisma.notificationUser, query);
   const result = await notificationQuery
     .search(['name'])
     .filter()
     .sort()
     .exclude()
     .paginate()
-    .customFields({
+    .select({
       id: true,
       isRead: true,
       notificationId: true,
@@ -71,8 +68,8 @@ const getAllNotifications = catchAsync(async (req, res) => {
           createdAt: true,
           title: true,
           type: true,
-          redirectEndpoint: true
-        }
+          redirectEndpoint: true,
+        },
       },
       receivedAt: true,
       updatedAt: true,
@@ -82,9 +79,9 @@ const getAllNotifications = catchAsync(async (req, res) => {
           firstName: true,
           lastName: true,
           email: true,
-          role: true
-        }
-      }
+          role: true,
+        },
+      },
     })
     .execute();
 

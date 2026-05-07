@@ -22,14 +22,19 @@ const getAllUsers = catchAsync(async (req, res) => {
     .search(['firstName', 'lastName', 'email'])
     .filter()
     .sort()
-    .customFields({
+    .select({
       id: true,
       firstName: true,
       lastName: true,
       email: true,
       role: true,
       profilePhoto: true,
-      ...(user.role === 'SUPERADMIN' && { isDeleted: true, createdAt: true, updatedAt: true, status: true, }),
+      ...(user.role === 'SUPERADMIN' && {
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+        status: true,
+      }),
     })
     .exclude()
     .paginate()
@@ -38,7 +43,7 @@ const getAllUsers = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     message: 'Users retrieved successfully',
-    ...result
+    ...result,
   });
 });
 
@@ -50,14 +55,13 @@ const getMyProfile = catchAsync(async (req, res) => {
     where: {
       id: id,
     },
-
   });
 
   if (role === 'SUPERADMIN') {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       message: 'Profile retrieved successfully',
-      data: { ...Profile, hideSubscription: false }
+      data: { ...Profile, hideSubscription: false },
     });
     return;
   }
@@ -67,7 +71,7 @@ const getMyProfile = catchAsync(async (req, res) => {
     payments: undefined,
     isPaid: false,
     subscriptionPackageId: '',
-  }
+  };
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -83,7 +87,7 @@ const getUserDetails = catchAsync(async (req, res) => {
   const result = await prisma.user.findUniqueOrThrow({
     where: {
       id,
-      ...(user.role !== 'SUPERADMIN' && { isDeleted: false })
+      ...(user.role !== 'SUPERADMIN' && { isDeleted: false }),
     },
     select: {
       id: true,
@@ -92,7 +96,12 @@ const getUserDetails = catchAsync(async (req, res) => {
       email: true,
       role: true,
       profilePhoto: true,
-      ...(user.role === 'SUPERADMIN' && { isDeleted: true, createdAt: true, updatedAt: true, status: true, }),
+      ...(user.role === 'SUPERADMIN' && {
+        isDeleted: true,
+        createdAt: true,
+        updatedAt: true,
+        status: true,
+      }),
     },
   });
 
@@ -110,9 +119,9 @@ const updateMyProfile = catchAsync(async (req: Request, res) => {
 
   const result = await prisma.user.update({
     where: {
-      id
+      id,
     },
-    data: payload
+    data: payload,
   });
 
   sendResponse(res, {
@@ -131,11 +140,11 @@ const updateProfileImage = catchAsync(async (req: Request, res) => {
     const location = await uploadToMinIO(file);
     const result = await prisma.user.update({
       where: {
-        id
+        id,
       },
       data: {
-        profilePhoto: location
-      }
+        profilePhoto: location,
+      },
     });
 
     if (previousImg) {
@@ -164,7 +173,7 @@ const updateUserRoleStatus = catchAsync(async (req, res) => {
       id: id,
     },
     data: {
-      role: role
+      role: role,
     },
   });
 
@@ -181,15 +190,15 @@ const updateUserStatus = catchAsync(async (req, res) => {
 
   const result = await prisma.user.update({
     where: {
-      id
+      id,
     },
     data: {
-      status
+      status,
     },
     select: {
       id: true,
       status: true,
-      role: true
+      role: true,
     },
   });
 
@@ -205,7 +214,7 @@ const deleteMyProfileFromDB = catchAsync(async (req, res) => {
 
   await prisma.user.update({
     where: {
-      id
+      id,
     },
     data: {
       isDeleted: true,
@@ -217,7 +226,7 @@ const deleteMyProfileFromDB = catchAsync(async (req, res) => {
       otpExpiry: null,
       passwordResetToken: null,
       passwordResetTokenExpires: null,
-    }
+    },
   });
 
   sendResponse(res, {
@@ -234,7 +243,7 @@ const undeletedUser = catchAsync(async (req, res) => {
     where: { id },
     data: {
       isDeleted: false,
-    }
+    },
   });
 
   sendResponse(res, {
@@ -253,5 +262,5 @@ export const UserServices = {
   updateUserRoleStatus,
   updateUserStatus,
   deleteMyProfileFromDB,
-  undeletedUser
+  undeletedUser,
 };

@@ -1,6 +1,8 @@
 model FilterType {
-    id   String @id @default(auto()) @map("_id") @db.ObjectId
-    name String
+    id        String  @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
 
     createdAt              DateTime                @default(now())
     updatedAt              DateTime                @updatedAt
@@ -16,6 +18,9 @@ model FilterTypeFilter {
     filterId String @db.ObjectId
     typeId   String @db.ObjectId
 
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
+
     filter Filter     @relation(fields: [filterId], references: [id])
     type   FilterType @relation(fields: [typeId], references: [id])
 
@@ -29,6 +34,9 @@ model Filter {
     id   String @id @default(auto()) @map("_id") @db.ObjectId
     name String
 
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
+
     createdAt         DateTime           @default(now())
     updatedAt         DateTime           @updatedAt
     filterProducts    ProductFilter[]
@@ -41,6 +49,9 @@ model ProductFilter {
     id        String @id @default(auto()) @map("_id") @db.ObjectId
     filterId  String @db.ObjectId
     productId String @db.ObjectId
+
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
 
     filter  Filter  @relation(fields: [filterId], references: [id])
     product Product @relation(fields: [productId], references: [id])
@@ -56,6 +67,9 @@ model CategoryFilterType {
     typeId     String @db.ObjectId
     categoryId String @db.ObjectId
 
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
+
     type     FilterType @relation(fields: [typeId], references: [id])
     category Category   @relation(fields: [categoryId], references: [id])
 
@@ -69,6 +83,9 @@ model SubCategoryFilterType {
     id            String @id @default(auto()) @map("_id") @db.ObjectId
     typeId        String @db.ObjectId
     subCategoryId String @db.ObjectId
+
+    isDeleted Boolean @default(false)
+    isActive  Boolean @default(true)
 
     type        FilterType  @relation(fields: [typeId], references: [id])
     subCategory SubCategory @relation(fields: [subCategoryId], references: [id])

@@ -9,220 +9,219 @@ import { checkSubCategoryTitleAndSlug } from './sub_category.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 
 const createSubCategory = catchAsync(async (req, res) => {
-    const payload = req.body as SubCategory;
-    const imageFiles = req.file as Express.Multer.File | undefined;
+  const payload = req.body as SubCategory;
+  const imageFiles = req.file as Express.Multer.File | undefined;
 
+  // Check if category exists
+  await prisma.category.findUniqueOrThrow({
+    where: {
+      id: payload.categoryId,
+      isDeleted: false,
+    },
+  });
 
-    // Check if category exists
-    await prisma.category.findUniqueOrThrow({
-        where: {
-            id: payload.categoryId,
-            isDeleted: false
-        }
-    });
+  const slug = await checkSubCategoryTitleAndSlug(payload.title);
+  const imageUrl = imageFiles ? (await uploadSingle(imageFiles)).url : '';
 
-    const slug = await checkSubCategoryTitleAndSlug(payload.title);
-    const imageUrl = imageFiles ? (await uploadSingle(imageFiles)).url : '';
+  payload.image = imageUrl;
 
-    payload.image = imageUrl;
+  const result = await prisma.subCategory.create({
+    data: {
+      title: payload.title,
+      slug: slug,
+      image: imageUrl,
+      categoryId: payload.categoryId,
+    },
+  });
 
-    const result = await prisma.subCategory.create({
-        data: {
-            title: payload.title,
-            slug: slug,
-            image: imageUrl,
-            categoryId: payload.categoryId,
-        },
-    });
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategory created successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategory created successfully',
+    data: result,
+  });
 });
 
 const updateSubCategory = catchAsync(async (req, res) => {
-    const payload = req.body as Partial<SubCategory>;
-    const id = req.params.id;
-    const imageFiles = req.file as Express.Multer.File | undefined;
-    let newImageUrls: string | null = null;
+  const payload = req.body as Partial<SubCategory>;
+  const id = req.params.id;
+  const imageFiles = req.file as Express.Multer.File | undefined;
+  let newImageUrls: string | null = null;
 
-    const isSubCategoryExist = await prisma.subCategory.findUniqueOrThrow({
-        where: {
-            id,
-            isDeleted: false
-        },
+  const isSubCategoryExist = await prisma.subCategory.findUniqueOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  if (payload.title) {
+    payload.slug = await checkSubCategoryTitleAndSlug(payload.title, id);
+  }
+
+  if (payload.categoryId) {
+    await prisma.category.findUniqueOrThrow({
+      where: {
+        id: payload.categoryId,
+        isDeleted: false,
+      },
     });
+  }
 
-    if (payload.title) {
-        payload.slug = await checkSubCategoryTitleAndSlug(payload.title, id);
+  if (imageFiles) {
+    const imageUrl = await uploadSingle(imageFiles);
+    if (imageUrl.url) {
+      payload.image = imageUrl.url;
+      newImageUrls = imageUrl.url;
     }
+  }
 
-    if (payload.categoryId) {
-        await prisma.category.findUniqueOrThrow({
-            where: {
-                id: payload.categoryId,
-                isDeleted: false
-            }
-        });
-    }
+  const result = await prisma.subCategory.update({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    data: {
+      ...payload,
+    },
+  });
 
-    if (imageFiles) {
-        const imageUrl = await uploadSingle(imageFiles);
-        if (imageUrl.url) {
-            payload.image = imageUrl.url;
-            newImageUrls = imageUrl.url;
-        }
-    }
+  if (newImageUrls) {
+    deleteSingle(isSubCategoryExist.image);
+  }
 
-    const result = await prisma.subCategory.update({
-        where: {
-            id,
-            isDeleted: false
-        },
-        data: {
-            ...payload,
-        },
-    });
-
-    if (newImageUrls) {
-        deleteSingle(isSubCategoryExist.image);
-    }
-
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategory updated successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategory updated successfully',
+    data: result,
+  });
 });
 
 const getAllSubCategory = catchAsync(async (req, res) => {
-    const query = (req.query || {}) as Record<string, unknown>;
-    const role = req?.user?.role as UserRoleEnum;
+  const query = (req.query || {}) as Record<string, unknown>;
+  const role = req?.user?.role as UserRoleEnum;
 
-    if (role === UserRoleEnum.SUPERADMIN) {
-        if (query.deletedSubCategory === 'true') {
-            query.isDeleted = true;
-        } else {
-            query.isDeleted = false;
-        }
+  if (role === UserRoleEnum.SUPERADMIN) {
+    if (query.deletedSubCategory === 'true') {
+      query.isDeleted = true;
     } else {
-        query.isDeleted = false;
-        query.isActive = true;
+      query.isDeleted = false;
     }
-    delete query.deletedSubCategory;
+  } else {
+    query.isDeleted = false;
+    query.isActive = true;
+  }
+  delete query.deletedSubCategory;
 
-    const subCategoryBuilder = new QueryBuilder(prisma.subCategory, query);
-    const result = await subCategoryBuilder
-        .search(['title', 'category.title', 'slug', 'category.slug'])
-        .customFields({
-            id: true,
-            title: true,
-            slug: true,
-            image: true,
-            categoryId: true,
-            category: {
-                select: {
-                    id: true,
-                    title: true,
-                    slug: true,
-                    image: true
-                }
-            }
-        })
-        .filter()
-        .sort()
-        .paginate()
-        .exclude()
-        .execute();
+  const subCategoryBuilder = new QueryBuilder(prisma.subCategory, query);
+  const result = await subCategoryBuilder
+    .search(['title', 'category.title', 'slug', 'category.slug'])
+    .select({
+      id: true,
+      title: true,
+      slug: true,
+      image: true,
+      categoryId: true,
+      category: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          image: true,
+        },
+      },
+    })
+    .filter()
+    .sort()
+    .paginate()
+    .exclude()
+    .execute();
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategories fetched successfully',
-        ...result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategories fetched successfully',
+    ...result,
+  });
 });
 
 const getSingleSubCategory = catchAsync(async (req, res) => {
-    const id = req.params.id;
-    const result = await prisma.subCategory.findUniqueOrThrow({
-        where: {
-            id,
-            isDeleted: false
+  const id = req.params.id;
+  const result = await prisma.subCategory.findUniqueOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    include: {
+      category: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
         },
-        include: {
-            category: {
-                select: {
-                    id: true,
-                    title: true,
-                    slug: true
-                }
-            }
-        }
-    });
+      },
+    },
+  });
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategory fetched successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategory fetched successfully',
+    data: result,
+  });
 });
 
 const toggleDeleteSubCategory = catchAsync(async (req, res) => {
-    const id = req.params.id;
-    const subCategory = await prisma.subCategory.findUniqueOrThrow({
-        where: {
-            id,
-        },
-    });
+  const id = req.params.id;
+  const subCategory = await prisma.subCategory.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
 
-    const result = await prisma.subCategory.update({
-        where: {
-            id,
-        },
-        data: {
-            isDeleted: !subCategory.isDeleted
-        }
-    });
+  const result = await prisma.subCategory.update({
+    where: {
+      id,
+    },
+    data: {
+      isDeleted: !subCategory.isDeleted,
+    },
+  });
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategory deleted status toggled successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategory deleted status toggled successfully',
+    data: result,
+  });
 });
 
 const toggleStatusSubCategory = catchAsync(async (req, res) => {
-    const id = req.params.id;
-    const subCategory = await prisma.subCategory.findUniqueOrThrow({
-        where: {
-            id,
-            isDeleted: false
-        },
-    });
+  const id = req.params.id;
+  const subCategory = await prisma.subCategory.findUniqueOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
 
-    const result = await prisma.subCategory.update({
-        where: {
-            id,
-        },
-        data: {
-            isActive: !subCategory.isActive
-        }
-    });
+  const result = await prisma.subCategory.update({
+    where: {
+      id,
+    },
+    data: {
+      isActive: !subCategory.isActive,
+    },
+  });
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        message: 'SubCategory status toggled successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    message: 'SubCategory status toggled successfully',
+    data: result,
+  });
 });
 
 export const SubCategoryService = {
-    createSubCategory,
-    updateSubCategory,
-    getAllSubCategory,
-    getSingleSubCategory,
-    toggleDeleteSubCategory,
-    toggleStatusSubCategory
+  createSubCategory,
+  updateSubCategory,
+  getAllSubCategory,
+  getSingleSubCategory,
+  toggleDeleteSubCategory,
+  toggleStatusSubCategory,
 };
