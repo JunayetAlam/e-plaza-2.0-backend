@@ -56,12 +56,41 @@ class QueryBuilder<
         ...this.prismaQuery.where,
         OR: searchableFields.map(field => {
           if (field.includes('.')) {
-            const [parentField, childField] = field.split('.');
-            return {
-              [parentField]: {
-                [childField]: { contains: searchTerm, mode: 'insensitive' },
-              },
-            };
+            const [parentField, childField, grandChildField] = field.split('.');
+            if (!grandChildField) {
+              return {
+                [parentField]: {
+                  [childField]: { contains: searchTerm, mode: 'insensitive' },
+                },
+              };
+            } else {
+              const childIsPlural = childField.endsWith('s');
+              if (childIsPlural) {
+                return {
+                  [parentField]: {
+                    some: {
+                      [childField]: {
+                        [grandChildField]: {
+                          contains: searchTerm,
+                          mode: 'insensitive',
+                        },
+                      },
+                    },
+                  },
+                };
+              } else {
+                return {
+                  [parentField]: {
+                    [childField]: {
+                      [grandChildField]: {
+                        contains: searchTerm,
+                        mode: 'insensitive',
+                      },
+                    },
+                  },
+                };
+              }
+            }
           }
           return { [field]: { contains: searchTerm, mode: 'insensitive' } };
         }),
