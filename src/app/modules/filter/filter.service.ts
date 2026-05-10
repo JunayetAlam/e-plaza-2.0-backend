@@ -6,6 +6,7 @@ import sendResponse from '../../utils/sendResponse';
 
 import catchAsync from '../../utils/catchAsync';
 import QueryBuilder from '../../builder/QueryBuilder';
+import AppError from '../../errors/AppError';
 
 const createFilter = catchAsync(async (req, res) => {
   const { name } = req.body;
@@ -47,7 +48,76 @@ const getAllFilters = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleFilter = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await prisma.filter.findUnique({
+    where: { id, isDeleted: false },
+  });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Filter retrieved successfully',
+    data: result,
+  });
+});
+
+const updateFilter = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await prisma.filter.update({
+    where: { id },
+    data: req.body,
+  });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Filter updated successfully',
+    data: result,
+  });
+});
+
+const deleteFilter = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await prisma.filter.update({
+    where: { id },
+    data: { isDeleted: true },
+  });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Filter deleted successfully',
+    data: result,
+  });
+});
+
+const toggleStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  // First fetch the filter to get current status
+  const existingFilter = await prisma.filter.findUnique({
+    where: { id, isDeleted: false },
+  });
+
+  if (!existingFilter) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Filter not found');
+  }
+
+  const result = await prisma.filter.update({
+    where: { id },
+    data: { isActive: !existingFilter.isActive },
+  });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Filter status toggled successfully',
+    data: result,
+  });
+});
+
 export const FilterService = {
   createFilter,
   getAllFilters,
+  getSingleFilter,
+  updateFilter,
+  deleteFilter,
+  toggleStatus,
 };

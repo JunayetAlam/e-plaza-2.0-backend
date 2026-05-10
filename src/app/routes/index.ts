@@ -9,6 +9,7 @@ import { OrderRouters } from '../modules/Order/order.route';
 import { CategoryRouters } from '../modules/Category/category.route';
 import { SubCategoryRoutes } from '../modules/Sub_Category/sub_category.route';
 import { ProductRoutes } from '../modules/Product/product.route';
+import { FilterRoutes } from '../modules/filter/filter.route';
 const router = express.Router();
 
 const moduleRoutes = [
@@ -53,10 +54,13 @@ const moduleRoutes = [
     route: AssetRouters,
   },
 
-
   {
     path: '/payments',
     route: PaymentRoutes,
+  },
+  {
+    path: '/filters',
+    route: FilterRoutes,
   },
 ];
 
